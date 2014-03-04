@@ -26,9 +26,10 @@ public:
 			:WebServer(port){};
 	virtual ~HTTPServer(){};
 
+//helpers
 	void errorReport(SOCKET sock, string code, string title, string mesg);
-	MyString guessContentType(MyString path);
-	void sendFile(SOCKET sock, ifstream& file);
+	const string guessContentType(MyString path) const;
+	void sendFile(SOCKET sock, string path) const;
 
 //CALLBACKS
 	void onUrlRequested(MyString url, SOCKET sock);

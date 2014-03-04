@@ -30,13 +30,33 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 			mLog("301 Moved Permanently");
 		} else {
 			if (f.isDirectory()) {
+				mLog("Is a directory: " + path);
 				// if directory, implicitly add 'index.html'
+				string header;
+				header =  "HTTP/1.1 200 OK\r\n";
+				header += "Content-Type: text/html\r\n\r\n";
+				header += "<html><body>";
+				int n = write(sock, header.c_str(), header.length());
+				if (n < 0){
+					mLog("ERROR writing to socket");
+					exit(1);
+				}
+				mLog("wrote to sock: " + header);
+
 				//TODO: out all files here
+
+
+
+				string footer = "</body></html>\r\n\r\n";
+				n = write(sock, footer.c_str(), footer.length());
+				if (n < 0){
+					mLog("ERROR writing to socket");
+					exit(1);
+				}
+
 			} else {
 				try {
 					// send files
-					ifstream ifile;
-
 
 					MyString temp;
 					temp = (string)"HTTP/1.0 200 OK\r\n";
@@ -45,7 +65,7 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 					temp += 		"Server: FileServer 1.0\r\n\r\n";
 					write(sock, temp.c_str(), temp.length());
 
-					sendFile(sock, ifile); // send raw file
+					sendFile(sock, path); // send raw file
 					mLog("200 OK");
 				} catch (...) {
 					// file not found
@@ -56,6 +76,45 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 
 		}//else
 	}//else
+}
+
+void HTTPServer::errorReport(int sock, string code, string title, string mesg) {
+	string temp;
+	temp = ("HTTP/1.0 " + code + " " + title + "\r\n" +
+		   "\r\n" +
+		   "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\r\n" +
+		   "<TITLE>" + code + " " + title + "</TITLE>\r\n" +
+		   "</HEAD><BODY>\r\n" +
+		   "<H1>" + title + "</H1>\r\n" + mesg + "<P>\r\n" +
+		   "<HR><ADDRESS>FileServer 1.0 at " +
+		   "127.0.0.1" +
+		   " Port " + "8080" + "</ADDRESS>\r\n" +
+		   "</BODY></HTML>\r\n");
+	mLog("Sending: " + temp);
+	write(sock, temp.c_str(), temp.length());
+	mLog(code + " " + title);
+}
+
+
+
+const string HTTPServer::guessContentType(MyString path) const {
+	if (path.endsWith(".html") || path.endsWith(".htm"))
+		    return "text/html";
+		else if (path.endsWith(".txt") || path.endsWith(".java"))
+		    return "text/plain";
+		else if (path.endsWith(".gif"))
+		    return "image/gif";
+		else if (path.endsWith(".class"))
+		    return "application/octet-stream";
+		else if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
+		    return "image/jpeg";
+		else
+		    return "text/plain";
+}
+
+void HTTPServer::sendFile(int sock, string path) const{
+	//TODO: add code here
+
 }
 
 void HTTPServer::onIncomingConnection(SOCKET sock){
