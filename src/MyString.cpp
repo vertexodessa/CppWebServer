@@ -5,14 +5,5 @@
  *      Author: vert
  */
 
-#include "MyString.hpp"
-
-MyString::MyString() {
-	// TODO Auto-generated constructor stub
-
-}
-
-MyString::~MyString() {
-	// TODO Auto-generated destructor stub
-}
+#include "../inc/MyString.hpp"
 

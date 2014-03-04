@@ -5,16 +5,22 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/HttpServer.cpp \
+../src/MyFile.cpp \
+../src/MyString.cpp \
 ../src/WebServer.cpp \
 ../src/main.cpp 
 
 OBJS += \
 ./src/HttpServer.o \
+./src/MyFile.o \
+./src/MyString.o \
 ./src/WebServer.o \
 ./src/main.o 
 
 CPP_DEPS += \
 ./src/HttpServer.d \
+./src/MyFile.d \
+./src/MyString.d \
 ./src/WebServer.d \
 ./src/main.d 
 

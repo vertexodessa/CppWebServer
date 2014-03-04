@@ -5,6 +5,7 @@
  *      Author: vert
  */
 #include "../inc/HttpServer.hpp"
+#include "../inc/MyFile.hpp"
 
 void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 	//string req = request.substr(4, request.length()-9).trim();
@@ -20,10 +21,11 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 		if (f.isDirectory() && !path.endsWith("/")) {
 			// redirect browser if referring to directory without final '/'
 			MyString temp;
-			temp = "HTTP/1.0 301 Moved Permanently\r\n" +
-					   "Location: http://" +
-					   "127.0.0.1" + ":" +
-					   "8080" + req + "/\r\n\r\n";
+			temp = "HTTP/1.0 301 Moved Permanently\r\n";
+			temp += "Location: http://";
+			temp += (string) "127.0.0.1" + ":" + "8080";
+			temp += req.c_str();
+			temp += "/\r\n\r\n";
 			write(sock, temp.c_str(), temp.length());
 			mLog("301 Moved Permanently");
 		} else {
@@ -37,10 +39,10 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 
 
 					MyString temp;
-					temp = ("HTTP/1.0 200 OK\r\n" +
-							   "Content-Type: " + guessContentType(path) + "\r\n" +
-							   "Date: " + "01.01.2014" + "\r\n" +
-							   "Server: FileServer 1.0\r\n\r\n");
+					temp = (string)"HTTP/1.0 200 OK\r\n";
+					temp += 		"Content-Type: " + guessContentType(path) + "\r\n";
+					temp += (string)"Date: " + "01.01.2014" + "\r\n";
+					temp += 		"Server: FileServer 1.0\r\n\r\n";
 					write(sock, temp.c_str(), temp.length());
 
 					sendFile(sock, ifile); // send raw file
@@ -53,9 +55,10 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 			}//else
 
 		}//else
+	}//else
 }
 
-void HTTPServer::onIncomingConnection(int sock) {
+void HTTPServer::onIncomingConnection(SOCKET sock){
 	//read data from socket
 	char buffer[1024];
 	int n;
@@ -68,7 +71,7 @@ void HTTPServer::onIncomingConnection(int sock) {
 		exit(1);
 	}
 
-	string data(buffer);
+	MyString data(buffer);
 	//data now contains incoming data.
 
 	string firstLine;

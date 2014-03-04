@@ -11,21 +11,24 @@
 
 #include <string>
 #include <algorithm>
-#include "WebServer.hpp"
+#include "../inc/WebServer.hpp"
+#include "../inc/MyString.hpp"
+
+#include <iostream>
+#include <fstream>
 
 class HTTPServer : public WebServer{
 private:
-	//disallow copy and assign
-	HTTPServer(HTTPServer&){};
 
 public:
+
 	HTTPServer(int port)
 			:WebServer(port){};
 	virtual ~HTTPServer(){};
 
 	void errorReport(SOCKET sock, string code, string title, string mesg);
 	MyString guessContentType(MyString path);
-	void sendFile(SOCKET sock, ifstream file);
+	void sendFile(SOCKET sock, ifstream& file);
 
 //CALLBACKS
 	void onUrlRequested(MyString url, SOCKET sock);

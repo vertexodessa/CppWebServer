@@ -5,7 +5,7 @@
  *      Author: vert
  */
 
-#include "MyFile.hpp"
+#include "../inc/MyFile.hpp"
 
 MyFile::MyFile() {
 	// TODO Auto-generated constructor stub
