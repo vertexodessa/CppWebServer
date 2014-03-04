@@ -76,7 +76,10 @@ void WebServer::run(void){
         }
         /* Create child process */
         int pid = fork();
-        ++openConnCount;
+        if(++openConnCount >= MAX_THREADS){
+        	mLog("Maximum number of connections reached");
+        	exit(1);
+        }
         if (pid < 0){
         	mLog("ERROR on fork");
         	exit(1);
