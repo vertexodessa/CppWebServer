@@ -113,7 +113,7 @@ void WebServer::init(int daemonMode) {
 		pid = fork();
 
 		if (pid < 0)
-			exit(EXIT_FAILURE); //TODO: maybe throw??
+			exit(EXIT_FAILURE); //TODO: should throw exception instead
 
 		//We got a good pid, Close the Parent Process
 		if (pid > 0)

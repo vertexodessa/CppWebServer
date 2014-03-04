@@ -26,6 +26,9 @@ public:
 
 	virtual ~MyString(){};
 
+
+	//TODO: should realize all these funcs with boost instead (but will work anyway)
+
 	bool endsWith(const string s){return find_last_of(s) == this->length() - s.length();};
 	bool startsWith(const string s){return find(s) == 0;};
 

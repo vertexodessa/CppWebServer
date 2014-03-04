@@ -12,7 +12,17 @@ MyFile::MyFile() {
 
 }
 
-MyFile::~MyFile() {
-	// TODO Auto-generated destructor stub
+MyFile::MyFile(MyString path) {
+	this->path = path;
 }
+
+MyFile::~MyFile() {
+}
+
+bool MyFile::isDirectory(void) {
+	struct stat sb;
+
+	return (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
 

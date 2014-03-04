@@ -9,8 +9,11 @@
 #define MYFILE_HPP_
 
 #include "../inc/MyString.hpp"
+#include <sys/stat.h>
+
 
 class MyFile {
+	string path;
 public:
 	MyFile();
 	MyFile(MyString path);
