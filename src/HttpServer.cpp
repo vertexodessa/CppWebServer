@@ -124,7 +124,7 @@ const string HTTPServer::guessContentType(MyString path) const {
 		    return "text/plain";
 }
 
-int HTTPServer::parseFile(int sock, string path, string* data) const{
+int HTTPServer::parseFile(int sock, const string& path, string* data) const{
 	//TODO: add code here
 	ifstream file;
 	file.open(path.c_str(), std::ifstream::binary);
@@ -148,7 +148,7 @@ int HTTPServer::parseFile(int sock, string path, string* data) const{
 	return length;
 }
 
-int HTTPServer::getDirFiles(string path, string* files) {
+int HTTPServer::getDirFiles(const string& path, string* files) {
     DIR *dp;
     struct dirent *dirp;
     vector<string> filesVect;
@@ -185,6 +185,9 @@ int HTTPServer::getDirFiles(string path, string* files) {
 
 
     return filesVect.size() + dirVect.size();
+}
+
+HTTPServer::~HTTPServer() {
 }
 
 void HTTPServer::onIncomingConnection(SOCKET sock){

@@ -23,18 +23,18 @@
 class HTTPServer : public WebServer{
 private:
 
-	int getDirFiles(string path, string* files);
+	int getDirFiles(const string& path, string* files);
 
 public:
 
 	HTTPServer(int port)
 			:WebServer(port){};
-	virtual ~HTTPServer(){};
+	virtual ~HTTPServer();
 
 //helpers
 	void errorReport(SOCKET sock, string code, string title, string mesg);
 	const string guessContentType(MyString path) const;
-	int parseFile(SOCKET sock, string path, string* data) const;
+	int parseFile(SOCKET sock, const string& path, string* data) const;
 
 
 //CALLBACKS

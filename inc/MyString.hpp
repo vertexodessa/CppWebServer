@@ -24,7 +24,7 @@ public:
 	MyString(char* s):string(s){};
 	MyString(string s):string(s){};
 
-	virtual ~MyString(){};
+	virtual ~MyString();
 
 
 	//TODO: should realize all these funcs with boost instead (but will work anyway)

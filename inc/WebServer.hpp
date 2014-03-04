@@ -49,7 +49,7 @@ protected:
 
 public:
 	WebServer(int port);
-	virtual ~WebServer(){};
+	virtual ~WebServer();
 
 	void init(int daemonMode);
 	void run(void);

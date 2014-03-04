@@ -17,6 +17,10 @@ void WebServer::mLog(const char* text, int level) {
 
 }
 
+WebServer::~WebServer(){
+
+}
+
 WebServer::WebServer(int port) {
 	this->mPort = port;
 	openConnCount = 0;
