@@ -11,6 +11,7 @@
 
 #include <string>
 #include <algorithm>
+#include <dirent.h>
 #include "../inc/WebServer.hpp"
 #include "../inc/MyString.hpp"
 
@@ -18,10 +19,11 @@
 #include <fstream>
 #include <sstream>
 
+
 class HTTPServer : public WebServer{
 private:
 
-
+	int getDirFiles(string path, string* files);
 
 public:
 
@@ -32,7 +34,8 @@ public:
 //helpers
 	void errorReport(SOCKET sock, string code, string title, string mesg);
 	const string guessContentType(MyString path) const;
-	void sendFile(SOCKET sock, string path) const;
+	int parseFile(SOCKET sock, string path, string* data) const;
+
 
 //CALLBACKS
 	void onUrlRequested(MyString url, SOCKET sock);

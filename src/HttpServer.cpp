@@ -8,27 +8,19 @@
 #include "../inc/MyFile.hpp"
 
 void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
-	//string req = request.substr(4, request.length()-9).trim();
-
 	if (req.find("..")!=-1 ||
 		req.find("/.ht")!=-1 || req.endsWith("~")) {
 		// evil hacker trying to read non-wwwhome or secret file
 		errorReport(sock, "403", "Forbidden",
 					"You don't have permission to access the requested URL.");
 	} else {
-		MyString path = req;
-		MyFile f(path);
-		if (f.isDirectory() && !path.endsWith("/")) {
-			// redirect browser if referring to directory without final '/'
-			MyString temp;
-			temp = "HTTP/1.0 301 Moved Permanently\r\n";
-			temp += "Location: http://";
-			temp += (string) "127.0.0.1" + ":" + "8080";
-			temp += req.c_str();
-			temp += "/\r\n\r\n";
-			write(sock, temp.c_str(), temp.length());
-			mLog("301 Moved Permanently");
-		} else {
+			MyString path = req;
+			MyFile f(path);
+			if (f.isDirectory() && !path.endsWith("/")) {
+				// redirect browser if referring to directory without final '/'
+				path += "/";
+			}
+
 			if (f.isDirectory()) {
 				mLog("Is a directory: " + path);
 				// if directory, implicitly add 'index.html'
@@ -39,8 +31,9 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 				string length = "Content-Length: ";
 
 				string html_header = "<html><body>";
-				//TODO: out all files here
+				// out all files here
 				string files;
+				getDirFiles(path, &files);
 
 				string html_footer = "</body></html>\r\n\r\n";
 				string data = html_header + files + html_footer;
@@ -67,15 +60,25 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 					MyString temp;
 					temp = (string)"HTTP/1.0 200 OK\r\n";
 					temp += 		"Content-Type: " + guessContentType(path) + "\r\n";
-					temp += (string)"Date: " + "01.01.2014" + "\r\n";
-					temp += 		"Server: FileServer 1.0\r\n\r\n";
+
+
+					string data;
+					parseFile(sock, path, &data); // send raw file
+
+					//count content-length.
+					string length = "Content-Length: ";
+					stringstream sstm;
+					sstm << data.length();
+					length += sstm.str() + "\r\n\r\n";
+
+					temp += length + data;
+
+
 					int n = write(sock, temp.c_str(), temp.length());
 					if (n < 0){
 						mLog("ERROR writing to socket");
 						exit(1);
 					}
-
-					sendFile(sock, path); // send raw file
 					mLog("200 OK");
 				} catch (...) {
 					// file not found
@@ -85,7 +88,6 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 			}//else
 
 		}//else
-	}//else
 }
 
 void HTTPServer::errorReport(int sock, string code, string title, string mesg) {
@@ -122,9 +124,67 @@ const string HTTPServer::guessContentType(MyString path) const {
 		    return "text/plain";
 }
 
-void HTTPServer::sendFile(int sock, string path) const{
+int HTTPServer::parseFile(int sock, string path, string* data) const{
 	//TODO: add code here
+	ifstream file;
+	file.open(path.c_str(), std::ifstream::binary);
 
+	if(!file.good())
+		throw("Bad file");
+
+	file.seekg (0, file.end);
+    int length = file.tellg();
+	file.seekg (0, file.beg);
+
+	char* temp = new char[length];
+
+    // read data as a block:
+	file.read(temp,length);
+	file.close();
+
+	*data = temp;
+	delete[] temp;
+
+	return length;
+}
+
+int HTTPServer::getDirFiles(string path, string* files) {
+    DIR *dp;
+    struct dirent *dirp;
+    vector<string> filesVect;
+    vector<string> dirVect;
+
+    if((dp  = opendir(path.c_str())) == NULL) {
+        mLog("Error opening dir");
+        exit(1);
+    }
+
+    while ((dirp = readdir(dp)) != NULL) {
+    	if(dirp->d_type == DT_DIR)
+    		// is a directory
+    		dirVect.push_back(string(dirp->d_name));
+    	else
+    		//is file or link
+    		filesVect.push_back(string(dirp->d_name));
+    }
+
+    closedir(dp);
+
+    sort(dirVect.begin(), dirVect.end());
+    sort(filesVect.begin(), filesVect.end());
+
+
+    for(int i=0; i<dirVect.size(); i++){ // could write for(string s : filesVect) , but this is faster
+    	*files += "<a href = \"" + path + dirVect[i] + "\">" + dirVect[i] + "</a>";
+    	*files += "<br>";
+    }
+    for(int i=0; i<filesVect.size(); i++){ // could write for(string s : filesVect) , but this is faster
+        *files += "<a href = \"" + path + filesVect[i] + "\">" + filesVect[i] + "</a>";
+        *files += "<br>";
+    }
+
+
+    return filesVect.size() + dirVect.size();
 }
 
 void HTTPServer::onIncomingConnection(SOCKET sock){
