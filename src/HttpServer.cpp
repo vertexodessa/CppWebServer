@@ -33,26 +33,32 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 				mLog("Is a directory: " + path);
 				// if directory, implicitly add 'index.html'
 				string header;
-				header =  "HTTP/1.1 200 OK\r\n";
-				header += "Content-Type: text/html\r\n\r\n";
-				header += "<html><body>";
-				int n = write(sock, header.c_str(), header.length());
-				if (n < 0){
-					mLog("ERROR writing to socket");
-					exit(1);
-				}
-				mLog("wrote to sock: " + header);
+				header =  (string)"HTTP/1.1 200 OK\r\n"
+						+ "Content-Type: text/html\r\n";
 
+				string length = "Content-Length: ";
+
+				string html_header = "<html><body>";
 				//TODO: out all files here
+				string files;
+
+				string html_footer = "</body></html>\r\n\r\n";
+				string data = html_header + files + html_footer;
 
 
+				//count content-length.
+				stringstream sstm;
+				sstm << data.length();
+				length += sstm.str() + "\r\n\r\n";
 
-				string footer = "</body></html>\r\n\r\n";
-				n = write(sock, footer.c_str(), footer.length());
+				data = header + length + html_header + files + html_footer;
+
+				int n = write(sock, data.c_str(), data.length()+1);
 				if (n < 0){
 					mLog("ERROR writing to socket");
 					exit(1);
 				}
+				mLog("Wrote: " + data);
 
 			} else {
 				try {
@@ -63,7 +69,11 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 					temp += 		"Content-Type: " + guessContentType(path) + "\r\n";
 					temp += (string)"Date: " + "01.01.2014" + "\r\n";
 					temp += 		"Server: FileServer 1.0\r\n\r\n";
-					write(sock, temp.c_str(), temp.length());
+					int n = write(sock, temp.c_str(), temp.length());
+					if (n < 0){
+						mLog("ERROR writing to socket");
+						exit(1);
+					}
 
 					sendFile(sock, path); // send raw file
 					mLog("200 OK");
@@ -138,12 +148,12 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 
 	//we should check if header is correct
 	const string prefix("GET");
-	const string postfix("HTTP/1.1");
+	const string postfix("HTTP/1.");
 
 	mLog(("Data received: " + data).c_str());
 
 	if(firstLine.find(prefix) != 0 // doesn't start with prefix
-			|| firstLine.find(postfix) != firstLine.length() - postfix.length() // doesn't end with postfix
+			|| firstLine.find(postfix) != firstLine.length()-1 - postfix.length() // doesn't end with postfix
 			|| firstLine.length() < 14){ // length is small
 		// header is incorrect
 		mLog("Bad request: " + firstLine);

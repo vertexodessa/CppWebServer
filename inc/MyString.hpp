@@ -29,8 +29,8 @@ public:
 
 	//TODO: should realize all these funcs with boost instead (but will work anyway)
 
-	bool endsWith(const string s){return find_last_of(s) == this->length() - s.length();};
-	bool startsWith(const string s){return find(s) == 0;};
+	bool endsWith(const string s)const {return find_last_of(s) == this->length() - s.length();};
+	bool startsWith(const string s)const {return find(s) == 0;};
 
 	// trim from start
 	string &ltrim() {
