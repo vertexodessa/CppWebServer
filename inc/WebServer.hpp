@@ -41,7 +41,7 @@ private:
 	friend void* threadFunc(void* data);
 
 
-	int openConnCount;
+
 	int mPort;
 
 	vector <int> mThreads;
@@ -51,9 +51,9 @@ protected:
 	bool daemonMode;
 	SOCKET newsockfd, sockfd;
 
-	void mLog(const char* text, int level =LOG_INFO);
+	void mLog(const char* text, int level =LOG_NOTICE);
 	void mLog(string s){mLog(s.c_str());}; // overload
-
+	int openConnCount;
 
 public:
 	WebServer(int port);

@@ -160,7 +160,7 @@ int HTTPServer::getDirFiles(const string& path, string* files) {
     vector<string> dirVect;
 
     if((dp  = opendir(path.c_str())) == NULL) {
-        mLog("Error opening dir");
+        mLog("Error opening dir", LOG_PERROR);
         exit(1);
     }
 
@@ -205,7 +205,7 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 	n = read(sock,buffer,1024);
 	if (n < 0)
 	{
-		mLog("ERROR reading from socket");
+		mLog("ERROR reading from socket", LOG_PERROR);
 		exit(1);
 	}
 	//mLog((string)"Read from buffer: " + buffer);
@@ -233,7 +233,7 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 		// header is correct
 		MyString req = firstLine.substr(4, firstLine.find(postfix)-4);
 		req.trim();
-		#if defined(FULLDEBUG) || defined(DEBUG)
+		#if defined(FULLDEBUG)
 		mLog("request is:" + req);
 		mLog("first line is:" + firstLine);
 		#endif
@@ -242,6 +242,7 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 	}
 
 	close(sock);
+	openConnCount--;
 
 
 }

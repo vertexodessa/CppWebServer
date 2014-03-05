@@ -93,13 +93,12 @@ void WebServer::run(void){
 		#endif
 
 		/* Accept actual connection from the client */
-        newsockfd = accept(sockfd,
-                			(struct sockaddr *) &cli_addr, &clilen);
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 		#if defined(FULLDEBUG) || defined(DEBUG)
         mLog("Socket accepted");
 		#endif
         if (newsockfd < 0){
-            mLog("ERROR on accept");
+            mLog("ERROR on accept", LOG_PERROR);
             exit(1);
         }
 
@@ -109,10 +108,14 @@ void WebServer::run(void){
 		#if defined(FULLDEBUG) || defined(DEBUG)
         mLog("Creating thread");
 		#endif
-        if( pthread_create(&thread1, NULL, threadFunc, (void*) this) < 0 ){
-		   mLog("could not create thread");
-		   exit(1);
-	   }
+        if(openConnCount++ <= MAX_THREADS){
+			if( pthread_create(&thread1, NULL, threadFunc, (void*) this) < 0 ){
+			   mLog("could not create thread", LOG_PERROR);
+			   exit(1);
+			}
+        } else {
+        	openConnCount--;
+        }
 	} /* end while */
 
 }
@@ -125,7 +128,7 @@ void WebServer::init(int daemonMode) {
 	// fork if daemon == 1
 	if(daemonMode == 1){
 	    //Set our Logging Mask and open the mLog
-//	    setlogmask(LOG_UPTO(LOG_NOTICE));
+	    setlogmask(LOG_UPTO(LOG_NOTICE));
 	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
 
 		pid_t pid, sid;
@@ -149,9 +152,9 @@ void WebServer::init(int daemonMode) {
 			exit(EXIT_FAILURE);
 
 	    //Close Standard File Descriptors
-	    close(STDIN_FILENO);
-	    close(STDOUT_FILENO);
-	    close(STDERR_FILENO);
+//	    close(STDIN_FILENO);
+//	    close(STDOUT_FILENO);
+//	    close(STDERR_FILENO);
 
 	}
 }
