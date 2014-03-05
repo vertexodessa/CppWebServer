@@ -23,6 +23,7 @@
 #include <netdb.h>      // Needed for the socket functions
 #include <syslog.h>
 #include <strings.h>
+#include <pthread.h>
 
 using namespace std;
 
@@ -32,20 +33,27 @@ const static char* DAEMON_NAME = "MYWEBSERVER";
 // portability define
 #define SOCKET int
 
+
 class WebServer{
 private:
 	//disallow copying
 	WebServer(WebServer&);
+	friend void* threadFunc(void* data);
 
-	bool daemonMode;
+
 	int openConnCount;
 	int mPort;
+
 	vector <int> mThreads;
 
 	void acceptConnection(SOCKET sock);
 protected:
+	bool daemonMode;
+	SOCKET newsockfd, sockfd;
+
 	void mLog(const char* text, int level =LOG_INFO);
 	void mLog(string s){mLog(s.c_str());}; // overload
+
 
 public:
 	WebServer(int port);

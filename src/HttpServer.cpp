@@ -7,6 +7,7 @@
 #include "../inc/HttpServer.hpp"
 #include "../inc/MyFile.hpp"
 
+
 void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 	if (req.find("..")!=-1 ||
 		req.find("/.ht")!=-1 || req.endsWith("~")) {
@@ -22,7 +23,9 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 			}
 
 			if (f.isDirectory()) {
+				#if defined(FULLDEBUG) || defined(DEBUG)
 				mLog("Is a directory: " + path);
+				#endif
 				// if directory, implicitly add 'index.html'
 				string header;
 				header =  (string)"HTTP/1.1 200 OK\r\n"
@@ -51,7 +54,9 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 					mLog("ERROR writing to socket");
 					exit(1);
 				}
+#ifdef FULLDEBUG
 				mLog("Wrote: " + data);
+#endif
 
 			} else {
 				try {
@@ -112,14 +117,14 @@ void HTTPServer::errorReport(int sock, string code, string title, string mesg) {
 const string HTTPServer::guessContentType(MyString path) const {
 	if (path.endsWith(".html") || path.endsWith(".htm"))
 		    return "text/html";
-		else if (path.endsWith(".txt") || path.endsWith(".java"))
+/*		else if (path.endsWith(".txt") || path.endsWith(".java"))
 		    return "text/plain";
 		else if (path.endsWith(".gif"))
 		    return "image/gif";
 		else if (path.endsWith(".class"))
 		    return "application/octet-stream";
 		else if (path.endsWith(".jpg") || path.endsWith(".jpeg"))
-		    return "image/jpeg";
+		    return "image/jpeg";*/
 		else
 		    return "text/plain";
 }
@@ -191,17 +196,19 @@ HTTPServer::~HTTPServer() {
 }
 
 void HTTPServer::onIncomingConnection(SOCKET sock){
+
 	//read data from socket
 	char buffer[1024];
 	int n;
 	bzero(buffer, sizeof(buffer));
 
-	n = read(sock,buffer,255);
+	n = read(sock,buffer,1024);
 	if (n < 0)
 	{
 		mLog("ERROR reading from socket");
 		exit(1);
 	}
+	//mLog((string)"Read from buffer: " + buffer);
 
 	MyString data(buffer);
 	//data now contains incoming data.
@@ -212,8 +219,9 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 	//we should check if header is correct
 	const string prefix("GET");
 	const string postfix("HTTP/1.");
-
+	#ifdef FULLDEBUG
 	mLog(("Data received: " + data).c_str());
+	#endif
 
 	if(firstLine.find(prefix) != 0 // doesn't start with prefix
 			|| firstLine.find(postfix) != firstLine.length()-1 - postfix.length() // doesn't end with postfix
@@ -225,13 +233,15 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 		// header is correct
 		MyString req = firstLine.substr(4, firstLine.find(postfix)-4);
 		req.trim();
-
+		#if defined(FULLDEBUG) || defined(DEBUG)
 		mLog("request is:" + req);
 		mLog("first line is:" + firstLine);
+		#endif
 
 		onUrlRequested(req, sock);
 	}
 
+	close(sock);
 
 
 }

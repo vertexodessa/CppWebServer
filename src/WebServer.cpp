@@ -7,12 +7,26 @@
 
 #include "../inc/WebServer.hpp"
 
+
+void* threadFunc(void* data){
+	WebServer* ws = (WebServer*) data;
+	#if defined(FULLDEBUG) || defined(DEBUG)
+	ws->mLog("In thread");
+	#endif
+	ws->onIncomingConnection(ws->newsockfd);
+	return data;
+}
+
+
 void WebServer::mLog(const char* text, int level) {
 
+	string temp(text);
+	temp += (daemonMode == 1)? " 1" : " 0";
+
 	if(daemonMode == 1){
-		syslog(level, text);
+		syslog(level, temp.c_str());
 	}else{
-		cout << text << endl;
+		cout << temp.c_str() << endl;
 	}
 
 }
@@ -27,11 +41,12 @@ WebServer::WebServer(int port) {
 }
 
 void WebServer::run(void){
-    SOCKET sockfd, newsockfd; // The socket descriptors
+    //SOCKET sockfd; // The socket descriptors
     unsigned int clilen;
     struct sockaddr_in serv_addr, cli_addr;
-
+	#if defined(FULLDEBUG) || defined(DEBUG)
     mLog("Creating socket");
+	#endif
     /* First call to socket() function */
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
@@ -40,7 +55,9 @@ void WebServer::run(void){
 		exit(1);
 	}
 
+	#if defined(FULLDEBUG) || defined(DEBUG)
 	mLog("Filling info");
+	#endif
 
 	/* Initialize socket structure */
 	bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -48,12 +65,13 @@ void WebServer::run(void){
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(this->mPort);
 
+	#if defined(FULLDEBUG) || defined(DEBUG)
 	mLog("Binding socket");
+	#endif
 
     /* Now bind the host address using bind() call.*/
     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-                          sizeof(serv_addr)) < 0)
-    {
+                          sizeof(serv_addr)) < 0){
          mLog("ERROR on binding", LOG_PERROR);
          exit(1);
     }
@@ -61,44 +79,40 @@ void WebServer::run(void){
     /* Now start listening for the clients, here process will
 	 * go in sleep mode and will wait for the incoming connection
 	 */
-
+	#if defined(FULLDEBUG) || defined(DEBUG)
     mLog("Starting listening");
-	listen(sockfd,5);
+	#endif
+
+    listen(sockfd,5);
 	clilen = sizeof(cli_addr);
 
 
 	while(true){
-
+		#if defined(FULLDEBUG) || defined(DEBUG)
+		mLog("Accept connection started");
+		#endif
 
 		/* Accept actual connection from the client */
         newsockfd = accept(sockfd,
                 			(struct sockaddr *) &cli_addr, &clilen);
+		#if defined(FULLDEBUG) || defined(DEBUG)
         mLog("Socket accepted");
+		#endif
         if (newsockfd < 0){
             mLog("ERROR on accept");
             exit(1);
         }
-        /* Create child process */
-        int pid = fork();
-        if(++openConnCount >= MAX_THREADS){
-        	mLog("Maximum number of connections reached");
-        	exit(1);
-        }
-        if (pid < 0){
-        	mLog("ERROR on fork");
-        	exit(1);
-        }
-        if (pid == 0){
-            /* This is the client process */
-            close(sockfd);
-            onIncomingConnection(newsockfd);
-            --openConnCount;
-            exit(0);
-        }else{
-            close(newsockfd);
-        }
 
 
+        //if thread_count < MAX_THREADS , create thread with onIncomingConnection(newsockfd);
+        pthread_t thread1;
+		#if defined(FULLDEBUG) || defined(DEBUG)
+        mLog("Creating thread");
+		#endif
+        if( pthread_create(&thread1, NULL, threadFunc, (void*) this) < 0 ){
+		   mLog("could not create thread");
+		   exit(1);
+	   }
 	} /* end while */
 
 }
