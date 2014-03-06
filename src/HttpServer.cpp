@@ -8,6 +8,7 @@
 #include "../inc/MyFile.hpp"
 
 
+
 void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 	if (req.find("..")!=-1 ||
 		req.find("/.ht")!=-1 || req.endsWith("~")) {
@@ -242,7 +243,9 @@ void HTTPServer::onIncomingConnection(SOCKET sock){
 	}
 
 	close(sock);
+	lock();
 	openConnCount--;
+	unlock();
 
 
 }

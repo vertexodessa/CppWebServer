@@ -33,27 +33,29 @@ const static char* DAEMON_NAME = "MYWEBSERVER";
 // portability define
 #define SOCKET int
 
-
 class WebServer{
 private:
 	//disallow copying
 	WebServer(WebServer&);
 	friend void* threadFunc(void* data);
-
-
-
 	int mPort;
-
-	vector <int> mThreads;
-
-	void acceptConnection(SOCKET sock);
-protected:
 	bool daemonMode;
+	//static pthread_mutex_t mutex;
+	//vector <int> mThreads;
+
+	//void acceptConnection(SOCKET sock);
+protected:
+
 	SOCKET newsockfd, sockfd;
 
 	void mLog(const char* text, int level =LOG_NOTICE);
 	void mLog(string s){mLog(s.c_str());}; // overload
-	int openConnCount;
+
+	static int openConnCount;
+	static pthread_mutex_t mutex;
+
+	inline void lock(void){pthread_mutex_lock( &mutex );};
+	inline void unlock(void){pthread_mutex_unlock( &mutex );};
 
 public:
 	WebServer(int port);
@@ -64,7 +66,6 @@ public:
 	virtual void onIncomingConnection(SOCKET sock){};
 
 };
-
 
 
 #endif /* WEBSERVER_HPP_ */

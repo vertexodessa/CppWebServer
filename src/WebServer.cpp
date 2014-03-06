@@ -7,6 +7,9 @@
 
 #include "../inc/WebServer.hpp"
 
+int WebServer::openConnCount =0;
+pthread_mutex_t WebServer::mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 void* threadFunc(void* data){
 	WebServer* ws = (WebServer*) data;
@@ -20,6 +23,7 @@ void* threadFunc(void* data){
 
 void WebServer::mLog(const char* text, int level) {
 
+	lock();
 	string temp(text);
 	temp += (daemonMode == 1)? " 1" : " 0";
 
@@ -28,6 +32,7 @@ void WebServer::mLog(const char* text, int level) {
 	}else{
 		cout << temp.c_str() << endl;
 	}
+	unlock();
 
 }
 
@@ -35,9 +40,8 @@ WebServer::~WebServer(){
 
 }
 
-WebServer::WebServer(int port) {
+WebServer::WebServer(int port){
 	this->mPort = port;
-	openConnCount = 0;
 }
 
 void WebServer::run(void){
@@ -108,13 +112,18 @@ void WebServer::run(void){
 		#if defined(FULLDEBUG) || defined(DEBUG)
         mLog("Creating thread");
 		#endif
-        if(openConnCount++ <= MAX_THREADS){
+        if(openConnCount < MAX_THREADS){
+        	lock();
+        	openConnCount++;
+        	unlock();
 			if( pthread_create(&thread1, NULL, threadFunc, (void*) this) < 0 ){
 			   mLog("could not create thread", LOG_PERROR);
 			   exit(1);
 			}
         } else {
+        	lock();
         	openConnCount--;
+        	unlock();
         }
 	} /* end while */
 
