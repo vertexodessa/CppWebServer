@@ -85,7 +85,9 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 						mLog("ERROR writing to socket");
 						exit(1);
 					}
+					#if defined(DEBUG) || defined(FULLDEBUG)
 					mLog("200 OK");
+					#endif
 				} catch (...) {
 					// file not found
 					errorReport(sock, "404", "Not Found",

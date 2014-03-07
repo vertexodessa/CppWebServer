@@ -161,9 +161,9 @@ void WebServer::init(int daemonMode) {
 			exit(EXIT_FAILURE);
 
 	    //Close Standard File Descriptors
-//	    close(STDIN_FILENO);
-//	    close(STDOUT_FILENO);
-//	    close(STDERR_FILENO);
+	    //close(STDIN_FILENO);
+	    //close(STDOUT_FILENO);
+	    //close(STDERR_FILENO);
 
 	}
 }
