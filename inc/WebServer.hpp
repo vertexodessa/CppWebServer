@@ -40,10 +40,8 @@ private:
 	friend void* threadFunc(void* data);
 	int mPort;
 	bool daemonMode;
-	//static pthread_mutex_t mutex;
-	//vector <int> mThreads;
-
-	//void acceptConnection(SOCKET sock);
+	static pthread_mutex_t mutex;
+	
 protected:
 
 	SOCKET newsockfd, sockfd;
@@ -52,7 +50,6 @@ protected:
 	void mLog(string s){mLog(s.c_str());}; // overload
 
 	volatile static int openConnCount;
-	static pthread_mutex_t mutex;
 
 	inline void lock(void){pthread_mutex_lock( &mutex );};
 	inline void unlock(void){pthread_mutex_unlock( &mutex );};

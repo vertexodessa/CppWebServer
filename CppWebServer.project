@@ -72,7 +72,7 @@
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
         <ThirdPartyToolName>None</ThirdPartyToolName>
-        <WorkingDirectory>/home/vert/workspace/CppWebServer/Debug</WorkingDirectory>
+        <WorkingDirectory>/home/vert/workspace/CppWebServer1/Debug</WorkingDirectory>
       </CustomBuild>
       <AdditionalRules>
         <CustomPostBuild/>
