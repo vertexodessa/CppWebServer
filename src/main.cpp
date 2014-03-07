@@ -58,7 +58,14 @@ int main(int argc, char** argv) {
 
 	HTTPServer myServer(8080);
 
-	myServer.init(1);
+        const string daem = "-daemon";
+        int daemon =0;
+        
+        if(argc == 2)
+            if(argv[1] == daem)
+                daemon = 1;
+        
+	myServer.init(daemon);
 	myServer.run();
 
 	return 0;
