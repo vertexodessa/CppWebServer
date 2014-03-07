@@ -7,7 +7,7 @@
 
 #include "../inc/WebServer.hpp"
 
-int WebServer::openConnCount =0;
+volatile int WebServer::openConnCount =0;
 pthread_mutex_t WebServer::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
