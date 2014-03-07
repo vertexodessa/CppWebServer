@@ -51,7 +51,7 @@ protected:
 	void mLog(const char* text, int level =LOG_NOTICE);
 	void mLog(string s){mLog(s.c_str());}; // overload
 
-	static int openConnCount;
+	volatile static int openConnCount;
 	static pthread_mutex_t mutex;
 
 	inline void lock(void){pthread_mutex_lock( &mutex );};
