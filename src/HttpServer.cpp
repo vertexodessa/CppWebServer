@@ -79,7 +79,6 @@ void HTTPServer::onUrlRequested(MyString req, SOCKET sock) {
 
 					temp += length + data;
 
-
 					int n = write(sock, temp.c_str(), temp.length());
 					if (n < 0){
 						mLog("ERROR writing to socket");
@@ -133,9 +132,8 @@ const string HTTPServer::guessContentType(MyString path) const {
 }
 
 int HTTPServer::parseFile(int sock, const string& path, string* data) const{
-	//TODO: add code here
 	ifstream file;
-	file.open(path.c_str(), std::ifstream::binary);
+	file.open(path.c_str(), ifstream::binary);
 
 	if(!file.good())
 		throw("Bad file");
@@ -144,13 +142,14 @@ int HTTPServer::parseFile(int sock, const string& path, string* data) const{
     int length = file.tellg();
 	file.seekg (0, file.beg);
 
-	char* temp = new char[length];
+	char* temp = new char[length+10];
 
     // read data as a block:
 	file.read(temp,length);
 	file.close();
+	temp[length] = '\0';
 
-	*data = temp;
+	data->assign(temp);
 	delete[] temp;
 
 	return length;
