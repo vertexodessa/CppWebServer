@@ -38,11 +38,12 @@ class WebServer{
 private:
 	//disallow copying
 	WebServer(WebServer&);
-	friend void* threadWrapper(void* data);
 	int mPort;
 	bool forked;
 	bool daemonMode;
 	static pthread_mutex_t mutex;
+	
+	void forkOut(void);
 	
 protected:
 
@@ -59,7 +60,6 @@ protected:
 	static void* threadWrapper(void* data);
 	
 public:
-	
 	
 	WebServer(int port);
 	virtual ~WebServer();

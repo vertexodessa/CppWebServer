@@ -30,7 +30,7 @@ void WebServer::mLog(const char* text, int level) {
 	string temp(text);
 	temp += (daemonMode == 1)? " 1" : " 0";
 
-	if(forked == 1){
+	if(forked){
 		syslog(level, temp.c_str());
 	}else{
 		cout << temp.c_str() << endl;
@@ -95,39 +95,7 @@ void WebServer::run(void){
     listen(sockfd,5);
 	clilen = sizeof(cli_addr);
 
-	// fork if daemon == 1
-	if(daemonMode == 1){
-	    //Set our Logging Mask and open the mLog
-	    setlogmask(LOG_UPTO(LOG_NOTICE));
-	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
-
-		pid_t pid, sid;
-	   //Fork the Parent Process
-		mLog("Forking");
-		forked = 1;
-		pid = fork();
-
-		if (pid < 0)
-			exit(EXIT_FAILURE); //TODO: should throw exception instead
-
-		//We got a good pid, Close the Parent Process
-		if (pid > 0)
-			exit(EXIT_SUCCESS);
-
-		//Change File Mask
-		umask(0);
-
-		//Create a new Signature Id for our child
-		sid = setsid();
-		if (sid < 0)
-			exit(EXIT_FAILURE);
-
-	    //Close Standard File Descriptors
-	    close(STDIN_FILENO);
-	    close(STDOUT_FILENO);
-	    close(STDERR_FILENO);
-
-	}
+	forkOut();
 
 	while(true){
 		#if defined(FULLDEBUG) || defined(DEBUG)
@@ -174,5 +142,39 @@ void WebServer::init(int daemonMode) {
 
 
 }
+void WebServer::forkOut(void){
+	
+	// fork if daemon == 1
+	if(daemonMode == 1){
+	    //Set our Logging Mask and open the mLog
+	    setlogmask(LOG_UPTO(LOG_NOTICE));
+	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
 
+		pid_t pid, sid;
+	   //Fork the Parent Process
+		mLog("Forking");
+		forked = 1;
+		pid = fork();
 
+		if (pid < 0)
+			exit(EXIT_FAILURE); //TODO: should throw exception instead
+
+		//We got a good pid, Close the Parent Process
+		if (pid > 0)
+			exit(EXIT_SUCCESS);
+
+		//Change File Mask
+		umask(0);
+
+		//Create a new Signature Id for our child
+		sid = setsid();
+		if (sid < 0)
+			exit(EXIT_FAILURE);
+
+	    //Close Standard File Descriptors
+	    close(STDIN_FILENO);
+	    close(STDOUT_FILENO);
+	    close(STDERR_FILENO);
+
+	}
+}
