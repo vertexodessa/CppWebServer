@@ -12,6 +12,8 @@ pthread_mutex_t WebServer::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 void* WebServer::threadWrapper(void* data){
+	assert(data != NULL);
+	
 	WebServer* ws = reinterpret_cast<WebServer*> (data);
 	#if defined(FULLDEBUG) || defined(DEBUG)
 	ws->mLog("In thread");
@@ -22,12 +24,13 @@ void* WebServer::threadWrapper(void* data){
 
 
 void WebServer::mLog(const char* text, int level) {
-
+	assert(text != NULL);
+	
 	lock();
 	string temp(text);
 	temp += (daemonMode == 1)? " 1" : " 0";
 
-	if(daemonMode == 1){
+	if(forked == 1){
 		syslog(level, temp.c_str());
 	}else{
 		cout << temp.c_str() << endl;
@@ -42,6 +45,7 @@ WebServer::~WebServer(){
 
 WebServer::WebServer(int port){
 	daemonMode = 0;
+	forked = 0;
 	this->mPort = port;
 }
 
@@ -91,6 +95,39 @@ void WebServer::run(void){
     listen(sockfd,5);
 	clilen = sizeof(cli_addr);
 
+	// fork if daemon == 1
+	if(daemonMode == 1){
+	    //Set our Logging Mask and open the mLog
+	    setlogmask(LOG_UPTO(LOG_NOTICE));
+	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+
+		pid_t pid, sid;
+	   //Fork the Parent Process
+		mLog("Forking");
+		forked = 1;
+		pid = fork();
+
+		if (pid < 0)
+			exit(EXIT_FAILURE); //TODO: should throw exception instead
+
+		//We got a good pid, Close the Parent Process
+		if (pid > 0)
+			exit(EXIT_SUCCESS);
+
+		//Change File Mask
+		umask(0);
+
+		//Create a new Signature Id for our child
+		sid = setsid();
+		if (sid < 0)
+			exit(EXIT_FAILURE);
+
+	    //Close Standard File Descriptors
+	    close(STDIN_FILENO);
+	    close(STDOUT_FILENO);
+	    close(STDERR_FILENO);
+
+	}
 
 	while(true){
 		#if defined(FULLDEBUG) || defined(DEBUG)
@@ -135,38 +172,7 @@ void WebServer::init(int daemonMode) {
 
 	this->daemonMode = daemonMode;
 
-	// fork if daemon == 1
-	if(daemonMode == 1){
-	    //Set our Logging Mask and open the mLog
-	    setlogmask(LOG_UPTO(LOG_NOTICE));
-	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
 
-		pid_t pid, sid;
-	   //Fork the Parent Process
-		mLog("Forking");
-		pid = fork();
-
-		if (pid < 0)
-			exit(EXIT_FAILURE); //TODO: should throw exception instead
-
-		//We got a good pid, Close the Parent Process
-		if (pid > 0)
-			exit(EXIT_SUCCESS);
-
-		//Change File Mask
-		umask(0);
-
-		//Create a new Signature Id for our child
-		sid = setsid();
-		if (sid < 0)
-			exit(EXIT_FAILURE);
-
-	    //Close Standard File Descriptors
-	    close(STDIN_FILENO);
-	    close(STDOUT_FILENO);
-	    close(STDERR_FILENO);
-
-	}
 }
 
 

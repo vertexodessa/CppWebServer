@@ -24,6 +24,7 @@
 #include <syslog.h>
 #include <strings.h>
 #include <pthread.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -39,6 +40,7 @@ private:
 	WebServer(WebServer&);
 	friend void* threadWrapper(void* data);
 	int mPort;
+	bool forked;
 	bool daemonMode;
 	static pthread_mutex_t mutex;
 	
