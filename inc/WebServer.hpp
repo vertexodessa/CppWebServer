@@ -37,7 +37,7 @@ class WebServer{
 private:
 	//disallow copying
 	WebServer(WebServer&);
-	friend void* threadFunc(void* data);
+	friend void* threadWrapper(void* data);
 	int mPort;
 	bool daemonMode;
 	static pthread_mutex_t mutex;
@@ -54,7 +54,11 @@ protected:
 	inline void lock(void){pthread_mutex_lock( &mutex );};
 	inline void unlock(void){pthread_mutex_unlock( &mutex );};
 
+	static void* threadWrapper(void* data);
+	
 public:
+	
+	
 	WebServer(int port);
 	virtual ~WebServer();
 

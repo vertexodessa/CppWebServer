@@ -11,8 +11,8 @@ volatile int WebServer::openConnCount =0;
 pthread_mutex_t WebServer::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-void* threadFunc(void* data){
-	WebServer* ws = (WebServer*) data;
+void* WebServer::threadWrapper(void* data){
+	WebServer* ws = reinterpret_cast<WebServer*> (data);
 	#if defined(FULLDEBUG) || defined(DEBUG)
 	ws->mLog("In thread");
 	#endif
@@ -41,6 +41,7 @@ WebServer::~WebServer(){
 }
 
 WebServer::WebServer(int port){
+	daemonMode = 0;
 	this->mPort = port;
 }
 
@@ -116,7 +117,7 @@ void WebServer::run(void){
         	lock();
         	openConnCount++;
         	unlock();
-			if( pthread_create(&thread1, NULL, threadFunc, (void*) this) < 0 ){
+			if( pthread_create(&thread1, NULL, threadWrapper, (void*) this) < 0 ){
 			   mLog("could not create thread", LOG_PERROR);
 			   exit(1);
 			}
