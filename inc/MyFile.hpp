@@ -12,14 +12,15 @@
 #include <sys/stat.h>
 
 
-class MyFile {
+class MyFile
+{
 	string path;
 public:
 	MyFile();
-	MyFile(MyString path);
+	MyFile ( MyString path );
 	virtual ~MyFile();
 
-	bool isDirectory(void);
+	bool isDirectory ( void );
 };
 
 #endif /* MYFILE_HPP_ */

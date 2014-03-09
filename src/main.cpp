@@ -54,20 +54,20 @@
 #include "../inc/WebServer.hpp"
 #include "../inc/HttpServer.hpp"
 
-int main(int argc, char** argv) {
+int main ( int argc, char** argv )
+{
 
-	HTTPServer myServer(8080);
+	HTTPServer myServer ( 8080 );
 
-        const string daem = "-daemon";
-        int daemon =0;
-        
-        if(argc == 2)
-            if(argv[1] == daem)
-                daemon = 1;
-        
-	myServer.init(daemon);
+	const string daem = "-daemon";
+	int daemon =0;
+
+	if ( argc == 2 )
+		if ( argv[1] == daem )
+			daemon = 1;
+
+	myServer.init ( daemon );
 	myServer.run();
 
 	return 0;
 }
-

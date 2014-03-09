@@ -11,170 +11,176 @@ volatile int WebServer::openConnCount =0;
 pthread_mutex_t WebServer::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-void* WebServer::threadWrapper(void* data){
-	assert(data != NULL);
-	
-	WebServer* ws = reinterpret_cast<WebServer*> (data);
-	#if defined(FULLDEBUG) || defined(DEBUG)
-	ws->mLog("In thread");
-	#endif
-	ws->onIncomingConnection(ws->newsockfd);
+void* WebServer::threadWrapper ( void* data )
+{
+	assert ( data != NULL );
+
+	WebServer* ws = reinterpret_cast<WebServer*> ( data );
+#if defined(FULLDEBUG) || defined(DEBUG)
+	ws->mLog ( "In thread" );
+#endif
+	ws->onIncomingConnection ( ws->newsockfd );
 	return data;
 }
 
 
-void WebServer::mLog(const char* text, int level) {
-	assert(text != NULL);
-	
-	lock();
-	string temp(text);
-	temp += (daemonMode == 1)? " 1" : " 0";
+void WebServer::mLog ( const char* text, int level )
+{
+	assert ( text != NULL );
 
-	if(forked){
-		syslog(level, temp.c_str());
-	}else{
+	lock();
+	string temp ( text );
+	temp += ( daemonMode == 1 ) ? " 1" : " 0";
+
+	if ( forked ) {
+		syslog ( level, temp.c_str() );
+	} else {
 		cout << temp.c_str() << endl;
 	}
 	unlock();
 
 }
 
-WebServer::~WebServer(){
+WebServer::~WebServer()
+{
 
 }
 
-WebServer::WebServer(int port){
+WebServer::WebServer ( int port )
+{
 	daemonMode = 0;
 	forked = 0;
 	this->mPort = port;
 }
 
-void WebServer::run(void){
-    //SOCKET sockfd; // The socket descriptors
-    unsigned int clilen;
-    struct sockaddr_in serv_addr, cli_addr;
-	#if defined(FULLDEBUG) || defined(DEBUG)
-    mLog("Creating socket");
-	#endif
-    /* First call to socket() function */
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0)
-	{
-		mLog("ERROR opening socket", LOG_PERROR);
-		exit(1);
+void WebServer::run ( void )
+{
+	//SOCKET sockfd; // The socket descriptors
+	unsigned int clilen;
+	struct sockaddr_in serv_addr, cli_addr;
+#if defined(FULLDEBUG) || defined(DEBUG)
+	mLog ( "Creating socket" );
+#endif
+	/* First call to socket() function */
+	sockfd = socket ( AF_INET, SOCK_STREAM, 0 );
+	if ( sockfd < 0 ) {
+		mLog ( "ERROR opening socket", LOG_PERROR );
+		exit ( 1 );
 	}
 
-	#if defined(FULLDEBUG) || defined(DEBUG)
-	mLog("Filling info");
-	#endif
+#if defined(FULLDEBUG) || defined(DEBUG)
+	mLog ( "Filling info" );
+#endif
 
 	/* Initialize socket structure */
-	bzero((char *) &serv_addr, sizeof(serv_addr));
+	bzero ( ( char * ) &serv_addr, sizeof ( serv_addr ) );
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(this->mPort);
+	serv_addr.sin_port = htons ( this->mPort );
 
-	#if defined(FULLDEBUG) || defined(DEBUG)
-	mLog("Binding socket");
-	#endif
+#if defined(FULLDEBUG) || defined(DEBUG)
+	mLog ( "Binding socket" );
+#endif
 
-    /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr,
-                          sizeof(serv_addr)) < 0){
-         mLog("ERROR on binding", LOG_PERROR);
-         exit(1);
-    }
+	/* Now bind the host address using bind() call.*/
+	if ( bind ( sockfd, ( struct sockaddr * ) &serv_addr,
+	            sizeof ( serv_addr ) ) < 0 ) {
+		mLog ( "ERROR on binding", LOG_PERROR );
+		exit ( 1 );
+	}
 
-    /* Now start listening for the clients, here process will
+	/* Now start listening for the clients, here process will
 	 * go in sleep mode and will wait for the incoming connection
 	 */
-	#if defined(FULLDEBUG) || defined(DEBUG)
-    mLog("Starting listening");
-	#endif
+#if defined(FULLDEBUG) || defined(DEBUG)
+	mLog ( "Starting listening" );
+#endif
 
-    listen(sockfd,5);
-	clilen = sizeof(cli_addr);
+	listen ( sockfd,5 );
+	clilen = sizeof ( cli_addr );
 
 	forkOut();
 
-	while(true){
-		#if defined(FULLDEBUG) || defined(DEBUG)
-		mLog("Accept connection started");
-		#endif
+	while ( true ) {
+#if defined(FULLDEBUG) || defined(DEBUG)
+		mLog ( "Accept connection started" );
+#endif
 
 		/* Accept actual connection from the client */
-        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-		#if defined(FULLDEBUG) || defined(DEBUG)
-        mLog("Socket accepted");
-		#endif
-        if (newsockfd < 0){
-            mLog("ERROR on accept", LOG_PERROR);
-            exit(1);
-        }
+		newsockfd = accept ( sockfd, ( struct sockaddr * ) &cli_addr, &clilen );
+#if defined(FULLDEBUG) || defined(DEBUG)
+		mLog ( "Socket accepted" );
+#endif
+		if ( newsockfd < 0 ) {
+			mLog ( "ERROR on accept", LOG_PERROR );
+			exit ( 1 );
+		}
 
 
-        //if thread_count < MAX_THREADS , create thread with onIncomingConnection(newsockfd);
-        pthread_t thread1;
-		#if defined(FULLDEBUG) || defined(DEBUG)
-        mLog("Creating thread");
-		#endif
-        if(openConnCount < MAX_THREADS){
-        	lock();
-        	openConnCount++;
-        	unlock();
-			if( pthread_create(&thread1, NULL, threadWrapper, (void*) this) < 0 ){
-			   mLog("could not create thread", LOG_PERROR);
-			   exit(1);
+		//if thread_count < MAX_THREADS , create thread with onIncomingConnection(newsockfd);
+		pthread_t thread1;
+#if defined(FULLDEBUG) || defined(DEBUG)
+		mLog ( "Creating thread" );
+#endif
+		if ( openConnCount < MAX_THREADS ) {
+			lock();
+			openConnCount++;
+			unlock();
+			if ( pthread_create ( &thread1, NULL, threadWrapper, ( void* ) this ) < 0 ) {
+				mLog ( "could not create thread", LOG_PERROR );
+				exit ( 1 );
 			}
-        } else {
-        	lock();
-        	openConnCount--;
-        	unlock();
-        }
+		} else {
+			lock();
+			openConnCount--;
+			unlock();
+		}
 	} /* end while */
 
 }
 
-void WebServer::init(int daemonMode) {
-	mLog("Initialising web server");
+void WebServer::init ( int daemonMode )
+{
+	mLog ( "Initialising web server" );
 
 	this->daemonMode = daemonMode;
 
 
 }
-void WebServer::forkOut(void){
-	
+void WebServer::forkOut ( void )
+{
+
 	// fork if daemon == 1
-	if(daemonMode == 1){
-	    //Set our Logging Mask and open the mLog
-	    setlogmask(LOG_UPTO(LOG_NOTICE));
-	    openlog(DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+	if ( daemonMode == 1 ) {
+		//Set our Logging Mask and open the mLog
+		setlogmask ( LOG_UPTO ( LOG_NOTICE ) );
+		openlog ( DAEMON_NAME, LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER );
 
 		pid_t pid, sid;
-	   //Fork the Parent Process
-		mLog("Forking");
+		//Fork the Parent Process
+		mLog ( "Forking" );
 		forked = 1;
 		pid = fork();
 
-		if (pid < 0)
-			exit(EXIT_FAILURE); //TODO: should throw exception instead
+		if ( pid < 0 )
+			exit ( EXIT_FAILURE ); //TODO: should throw exception instead
 
 		//We got a good pid, Close the Parent Process
-		if (pid > 0)
-			exit(EXIT_SUCCESS);
+		if ( pid > 0 )
+			exit ( EXIT_SUCCESS );
 
 		//Change File Mask
-		umask(0);
+		umask ( 0 );
 
 		//Create a new Signature Id for our child
 		sid = setsid();
-		if (sid < 0)
-			exit(EXIT_FAILURE);
+		if ( sid < 0 )
+			exit ( EXIT_FAILURE );
 
-	    //Close Standard File Descriptors
-	    close(STDIN_FILENO);
-	    close(STDOUT_FILENO);
-	    close(STDERR_FILENO);
+		//Close Standard File Descriptors
+		close ( STDIN_FILENO );
+		close ( STDOUT_FILENO );
+		close ( STDERR_FILENO );
 
 	}
 }

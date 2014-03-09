@@ -18,37 +18,42 @@ using namespace std;
 // destructor in that class is not virtual so that could lead to some memory leak problems..
 // will refactor it later (c) Vert
 
-class MyString: public string{
+class MyString: public string
+{
 public:
-	MyString():string(){};
-	MyString(char* s):string(s){};
-	MyString(string s):string(s){};
+	MyString() :string() {};
+	MyString ( char* s ) :string ( s ) {};
+	MyString ( string s ) :string ( s ) {};
 
 	virtual ~MyString();
 
 
 	//TODO: should realize all these funcs with boost instead (but will work anyway)
 
-	bool endsWith(const string s)const {return find_last_of(s) == this->length() - s.length();};
-	bool startsWith(const string s)const {return find(s) == 0;};
+	bool endsWith ( const string s ) const {
+		return find_last_of ( s ) == this->length() - s.length();
+	};
+	bool startsWith ( const string s ) const {
+		return find ( s ) == 0;
+	};
 
 	// trim from start
 	string &ltrim() {
-	        this->erase(this->begin(), find_if(this->begin(), this->end(), not1(ptr_fun<int, int>(isspace))));
-	        return *this;
+		this->erase ( this->begin(), find_if ( this->begin(), this->end(), not1 ( ptr_fun<int, int> ( isspace ) ) ) );
+		return *this;
 	}
 
 	// trim from end
 	string &rtrim() {
-	        this->erase(find_if(this->rbegin(), this->rend(), not1(ptr_fun<int, int>(isspace))).base(), this->end());
-	        return *this;
+		this->erase ( find_if ( this->rbegin(), this->rend(), not1 ( ptr_fun<int, int> ( isspace ) ) ).base(), this->end() );
+		return *this;
 	}
 
 	// trim from both ends
 	string &trim() {
-			rtrim();
-	        ltrim();
-	        return *this;
+		rtrim();
+		ltrim();
+		return *this;
 	}
 
 };

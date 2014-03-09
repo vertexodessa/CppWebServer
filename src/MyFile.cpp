@@ -7,22 +7,24 @@
 
 #include "../inc/MyFile.hpp"
 
-MyFile::MyFile() {
+MyFile::MyFile()
+{
 	// TODO Auto-generated constructor stub
 
 }
 
-MyFile::MyFile(MyString path) {
+MyFile::MyFile ( MyString path )
+{
 	this->path = path;
 }
 
-MyFile::~MyFile() {
+MyFile::~MyFile()
+{
 }
 
-bool MyFile::isDirectory(void) {
+bool MyFile::isDirectory ( void )
+{
 	struct stat sb;
 
-	return (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
+	return ( stat ( path.c_str(), &sb ) == 0 && S_ISDIR ( sb.st_mode ) );
 }
-
-

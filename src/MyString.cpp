@@ -7,5 +7,6 @@
 
 #include "../inc/MyString.hpp"
 
-MyString::~MyString() {
+MyString::~MyString()
+{
 }
